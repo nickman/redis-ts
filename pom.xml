@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.helios</groupId>
+  <artifactId>redis-ts</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  <packaging>jar</packaging>
+  <name>redis-ts</name>
+  <url>https://github.com/nickman/redis-ts#readme</url>
+  <properties>
+    <junit.version>4.8.2</junit.version>
+    <netty.version>3.4.1.Final</netty.version>
+    <log4j.version>1.2.16</log4j.version>
+    <reflections.version>0.9.5</reflections.version>
+    <slf4j.version>1.6.1</slf4j.version>
+    <json-smart.version>1.1.1</json-smart.version>
+    <jedis.version>2.0.0</jedis.version>
+  </properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-eclipse-plugin</artifactId>
+          <version>2.9</version>
+          <configuration>
+          	  <classpathContainersLast>false</classpathContainersLast>
+              <ajdtVersion>none</ajdtVersion>
+              <projectNameTemplate>[artifactId]-delta</projectNameTemplate>
+          </configuration>
+      </plugin>		
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<!--
+						During release:perform, enable the "release" profile
+					-->
+					<releaseProfiles>release</releaseProfiles>
+					<goals>deploy assembly:assembly</goals>
+				</configuration>
+			</plugin>
+			
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.4</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals><goal>copy-dependencies</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+			<plugin>
+	            <artifactId>maven-assembly-plugin</artifactId>
+	            <configuration>
+	            	<finalName>netty-ajax-server</finalName>
+	                <archive>
+	                    <manifest>
+	                      <addClasspath>true</addClasspath>
+				          <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+				          <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>	                      
+					  <!-- <mainClass>org.helios.netty.ajax.Server</mainClass> -->
+	                    </manifest>
+	                </archive>
+	                <descriptorRefs>
+	                    <descriptorRef>jar-with-dependencies</descriptorRef>
+	                </descriptorRefs>
+	            </configuration>
+	        </plugin>
+		     <plugin>
+		        <groupId>org.codehaus.mojo</groupId>
+		        <artifactId>exec-maven-plugin</artifactId>
+		        <executions>
+		          <execution>
+		            <goals>
+		              <goal>exec</goal>
+		            </goals>
+		          </execution>
+		        </executions>
+		        <configuration>
+			  <!-- <mainClass>org.helios.netty.ajax.Server</mainClass> -->
+		          	<executable>maven</executable>
+		        </configuration>
+		      </plugin>	        
+		</plugins>
+	</build>
+
+
+	
+	  <dependencies>
+	<!--   Test Dependencies -->
+	    <dependency>
+	      <groupId>junit</groupId>
+	      <artifactId>junit</artifactId>
+	      <version>${junit.version}</version>
+	      <scope>test</scope>
+	    </dependency>
+	    <dependency>
+	      <groupId>io.netty</groupId>
+	      <artifactId>netty</artifactId>
+	      <version>${netty.version}</version>
+	    </dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>${log4j.version}</version>
+		</dependency>			
+	    <dependency>
+			<groupId>org.reflections</groupId>
+			<artifactId>reflections</artifactId>
+			<version>${reflections.version}</version>
+	    </dependency>
+	    <dependency>
+	      <groupId>org.slf4j</groupId>
+	      <artifactId>slf4j-log4j12</artifactId>
+	      <version>${slf4j.version}</version>
+	    </dependency>
+		<dependency>
+		  <groupId>net.minidev</groupId>
+		  <artifactId>json-smart</artifactId>
+		  <version>${json-smart.version}</version>
+		 </dependency>	    
+		<dependency>
+		  <groupId>redis.clients</groupId>
+		  <artifactId>jedis</artifactId>
+		  <version>${jedis.version}</version>
+		</dependency>				    
+	  </dependencies>
+	
+
+
+</project>
