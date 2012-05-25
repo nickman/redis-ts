@@ -25,7 +25,9 @@
 package org.helios.redis.ts.core;
 
 import java.util.EnumSet;
-import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -75,7 +77,7 @@ public class Tier {
 			name = TimeSeriesModel.LIVE_TIER;
 		}
 		String[] expressions = TIER_GRP_REGEX.split(tierDef);		
-		Map<String, Triplet> triplets = new HashMap<String, Triplet>(3); // we need 2 out of a possible 3 attributes to complete the tier definition
+		Map<String, Triplet> triplets = new LinkedHashMap<String, Triplet>(3); // we need 2 out of a possible 3 attributes to complete the tier definition
   
 		for(String expression: expressions) {
 			Matcher matcher = TIER_EXPR_REGEX.matcher(expression);
@@ -90,10 +92,12 @@ public class Tier {
 				name = matcher.group(4);
 				if(name.isEmpty()) name = "tier" + level;
 			} else {
-				size = Long.parseLong(matcher.group(2));
+				
 				if("c".equals(attr)) {
+					size = Long.parseLong(matcher.group(4));
 					unit = null;
 				} else {
+					size = Long.parseLong(matcher.group(2));
 					unit = matcher.group(3);
 				}
 				if(triplets.put(attr, new Triplet(attr, unit, size))!=null) {
@@ -105,33 +109,85 @@ public class Tier {
 			throw new InvalidTierDefinitionException("The passed tier definition contained an insufficient number of attributes [" + tierDef + "]");
 		}
 		Set<FieldCode> pending = EnumSet.of(FieldCode.p, FieldCode.d, FieldCode.c);
+		// This is so we validate in the order set, so that if the 3rd value is derived, that should be the first to be checked.
+		LinkedList<FieldCode> validationOrder = new LinkedList<FieldCode>();
 		for(Triplet triplet: triplets.values()) {
 			switch (triplet.fc) {
-			case p:
+			case p:				
+				log("Setting p");
 				periodDuration = new Duration(triplet.size, triplet.unit).refine();
 				pending.remove(FieldCode.p);
+				validationOrder.add(FieldCode.p);
 				break;
 			case d:
+				log("Setting d");
 				tierDuration = new Duration(triplet.size, triplet.unit).refine();
 				pending.remove(FieldCode.d);
+				validationOrder.add(FieldCode.d);
 				break;				
 			case c:
+				log("Setting c");
 				periodCount = triplet.size;
 				pending.remove(FieldCode.c);
+				validationOrder.add(FieldCode.c);
 			}
 		}
+		// If we only got 2 triplets, we need to calculate the third
 		if(!pending.isEmpty()) {
 			switch(pending.iterator().next()) {
 			case p:
+				log("Calcing p");
 				periodDuration = new Duration(tierDuration.renderIn(TSUnit.SECONDS).size/periodCount, TSUnit.SECONDS).refine();
+				validationOrder.add(FieldCode.p);
 				break;
 			case d:
+				log("Calcing d");
 				tierDuration = new Duration(periodDuration.renderIn(TSUnit.SECONDS).size*periodCount, TSUnit.SECONDS).refine();
+				validationOrder.add(FieldCode.d);
 				break;				
 			case c:
-				periodCount = tierDuration.renderIn(TSUnit.SECONDS).size / periodDuration.renderIn(TSUnit.SECONDS).size;		
+				log("Calcing c");
+				periodCount = tierDuration.renderIn(TSUnit.SECONDS).size / periodDuration.renderIn(TSUnit.SECONDS).size;
+				validationOrder.add(FieldCode.c);
 			}
 		}
+		validate(validationOrder);
+	}
+	
+	/**
+	 * Validates the calculated values for this tier.
+	 * @param validationOrder A list of field codes to supply the order to validate in
+	 */
+	protected void validate(LinkedList<FieldCode> validationOrder) {
+		
+		
+		for(Iterator<FieldCode> iter = validationOrder.descendingIterator(); iter.hasNext();) {
+			FieldCode fc = iter.next();
+			switch(fc) {
+			case p:
+				log("Validating p");
+				Duration pDur = new Duration(tierDuration.renderIn(TSUnit.SECONDS).size/periodCount, TSUnit.SECONDS).refine();
+				if(!pDur.equals(periodDuration)) {
+					throw new IllegalTierStateException("Invalid Period Duration [" + periodDuration + "] for Tier Duration [" + tierDuration + "] and Period Count [" + periodCount + "]. Should be [" + pDur + "]");
+				}
+				break;
+			case d:
+				log("Validating d");
+				Duration tDur = new Duration(periodDuration.renderIn(TSUnit.SECONDS).size*periodCount, TSUnit.SECONDS).refine();
+				if(!tDur.equals(tierDuration)) {
+					throw new IllegalTierStateException("Invalid Tier Duration [" + tierDuration + "] for Period Duration [" + periodDuration + "] and Period Count [" + periodCount + "]. Should be [" + tDur + "]");
+				}
+				break;				
+			case c:
+				log("Validating c");
+				long pCount = tierDuration.renderIn(TSUnit.SECONDS).size / periodDuration.renderIn(TSUnit.SECONDS).size;
+				if(periodCount!=pCount) {
+					throw new IllegalTierStateException("Invalid Period Count [" + periodCount + "] for Period Duration [" + periodDuration + "] and Tier Duration [" + tierDuration + "]. Should be [" + pCount + "]");
+				}
+			}
+		}
+
+		
 	}
 	
 	
@@ -153,7 +209,9 @@ public class Tier {
 	
 	public static void main(String[] args) {
 		log("Tier Test");
-		log(new Tier("p=15s, d=15m", 0));
+		log(new Tier("c=60, p=15s", 0));
+
+		
 	}
 	
 	public static void log(Object msg) {

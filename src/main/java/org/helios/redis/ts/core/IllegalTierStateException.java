@@ -25,33 +25,34 @@
 package org.helios.redis.ts.core;
 
 /**
- * <p>Title: AssertedTierPropertyException</p>
- * <p>Description: A tier parsing exception that occurs when the third item in the triplet is defined but does not match the calculated value from the first 2</p> 
+ * <p>Title: IllegalTierStateException</p>
+ * <p>Description: A tier parsing exception that occurs when the validation of a constructed tier fails because a calc a triplet member is not 
+ * equal to the calc using the other 2</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.AssertedTierPropertyException</code></p>
+ * <p><code>org.helios.redis.ts.core.IllegalTierStateException</code></p>
  */
-public class AssertedTierPropertyException extends InvalidTierDefinitionException {
+public class IllegalTierStateException extends InvalidTierDefinitionException {
 
 	/**  */
 	private static final long serialVersionUID = -7837093835843651717L;
 
 
 	/**
-	 * Creates a new AssertedTierPropertyException
+	 * Creates a new IllegalTierStateException
 	 * @param message The error message and erroneous tier definition
 	 */
-	public AssertedTierPropertyException(String message) {
+	public IllegalTierStateException(String message) {
 		super(message);
 	}
 
 
 	/**
-	 * Creates a new AssertedTierPropertyException
+	 * Creates a new IllegalTierStateException
 	 * @param message The error message and erroneous tier definition
 	 * @param cause THe underlying cause of the defintion exception
 	 */
-	public AssertedTierPropertyException(String message, Throwable cause) {
+	public IllegalTierStateException(String message, Throwable cause) {
 		super(message, cause);
 	}
 
