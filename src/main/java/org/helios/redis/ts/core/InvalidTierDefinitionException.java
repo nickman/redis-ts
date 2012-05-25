@@ -24,55 +24,35 @@
  */
 package org.helios.redis.ts.core;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * <p>Title: TimeSeriesModel</p>
- * <p>Description: Container and parser for the timeseries core structure and tier model.</p>
+ * <p>Title: InvalidTierDefinitionException</p>
+ * <p>Description: Generalized exception for error parsing a tier definition</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TimeSeriesModel</code></p>
+ * <p><code>org.helios.redis.ts.core.InvalidTierDefinitionException</code></p>
  */
+public class InvalidTierDefinitionException extends RuntimeException {
 
-public class TimeSeriesModel {
-	/**  The live ts tier name */ 
-	public static final String LIVE_TIER = "live";
-	
-	/** The timeseries tiers */
-	protected List<Tier> tiers = new ArrayList<Tier>();
-	
-	private TimeSeriesModel() {
-		
-	}
-	
+	/**  */
+	private static final long serialVersionUID = -2238448635065811876L;
+
+
 	/**
-	 * Creates a new TimeSeriesModel from the passed stringified model
-	 * @param model The string representation of the model
-	 * @return a new TimeSeriesModel 
+	 * Creates a new InvalidTierDefinitionException
+	 * @param message The error message and erroneous tier definition
 	 */
-	public static TimeSeriesModel create(String model) {
-		if(model==null) throw new IllegalArgumentException("The passed model was null", new Throwable());
-		String[] frags = model.split("\\|");
-		int cnt = 0;
-		for(String frag: frags) {
-			frag = frag.replace(" ", "");
-			Tier tier = new Tier(frag, cnt);
-			
-			cnt++;
-		}
-		return null;
+	public InvalidTierDefinitionException(String message) {
+		super(message);
 	}
-	
-	
-	public static void main(String[] args) {
-		log("Test TimeSeriesModel");
-		String config = "p=15s,d=15m   |  p=2m,d=1h";
+
+
+	/**
+	 * Creates a new InvalidTierDefinitionException
+	 * @param message The error message and erroneous tier definition
+	 * @param cause THe underlying cause of the defintion exception
+	 */
+	public InvalidTierDefinitionException(String message, Throwable cause) {
+		super(message, cause);
 	}
-	
-	public static void log(Object msg) {
-		System.out.println(msg);
-	}
+
 }
-	
-	

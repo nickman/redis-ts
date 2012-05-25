@@ -24,55 +24,35 @@
  */
 package org.helios.redis.ts.core;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * <p>Title: TimeSeriesModel</p>
- * <p>Description: Container and parser for the timeseries core structure and tier model.</p>
+ * <p>Title: AssertedTierPropertyException</p>
+ * <p>Description: A tier parsing exception that occurs when the third item in the triplet is defined but does not match the calculated value from the first 2</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TimeSeriesModel</code></p>
+ * <p><code>org.helios.redis.ts.core.AssertedTierPropertyException</code></p>
  */
+public class AssertedTierPropertyException extends InvalidTierDefinitionException {
 
-public class TimeSeriesModel {
-	/**  The live ts tier name */ 
-	public static final String LIVE_TIER = "live";
-	
-	/** The timeseries tiers */
-	protected List<Tier> tiers = new ArrayList<Tier>();
-	
-	private TimeSeriesModel() {
-		
-	}
-	
+	/**  */
+	private static final long serialVersionUID = -7837093835843651717L;
+
+
 	/**
-	 * Creates a new TimeSeriesModel from the passed stringified model
-	 * @param model The string representation of the model
-	 * @return a new TimeSeriesModel 
+	 * Creates a new AssertedTierPropertyException
+	 * @param message The error message and erroneous tier definition
 	 */
-	public static TimeSeriesModel create(String model) {
-		if(model==null) throw new IllegalArgumentException("The passed model was null", new Throwable());
-		String[] frags = model.split("\\|");
-		int cnt = 0;
-		for(String frag: frags) {
-			frag = frag.replace(" ", "");
-			Tier tier = new Tier(frag, cnt);
-			
-			cnt++;
-		}
-		return null;
+	public AssertedTierPropertyException(String message) {
+		super(message);
 	}
-	
-	
-	public static void main(String[] args) {
-		log("Test TimeSeriesModel");
-		String config = "p=15s,d=15m   |  p=2m,d=1h";
+
+
+	/**
+	 * Creates a new AssertedTierPropertyException
+	 * @param message The error message and erroneous tier definition
+	 * @param cause THe underlying cause of the defintion exception
+	 */
+	public AssertedTierPropertyException(String message, Throwable cause) {
+		super(message, cause);
 	}
-	
-	public static void log(Object msg) {
-		System.out.println(msg);
-	}
+
 }
-	
-	

@@ -26,6 +26,7 @@ package org.helios.redis.ts.core;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>Title: TSUnit</p>
@@ -37,22 +38,59 @@ import java.util.Map;
 
 public enum TSUnit  {
 	/** The seconds TSUnit */
-	SECONDS(1L, "S"),
+	SECONDS(1L, "S") {
+		public long convertToSeconds(long value) { return value;};
+		public long convertToMinutes(long value) { return value*60;};
+		public long convertToHours(long value) { return value*60*60;};
+		public long convertToDays(long value) { return value*60*60*24;};
+		public long convertToWeeks(long value) { return value*60*60*24*7;};
+		public long convert(long d, TSUnit u) { return u.convertToSeconds(d); }
+	},
 	/** The minutes TSUnit */
-	MINUTES(60L, "M"),
+	MINUTES(60L, "M"){
+		public long convertToSeconds(long value) { return value/60;};
+		public long convertToMinutes(long value) { return value;};
+		public long convertToHours(long value) { return value*60;};
+		public long convertToDays(long value) { return value*60*24;};
+		public long convertToWeeks(long value) { return value*60*24*7;};
+		public long convert(long d, TSUnit u) { return u.convertToMinutes(d); }
+	},
 	/** The hours TSUnit */
-	HOURS(3600L, "H"),
+	HOURS(3600L, "H") {
+		public long convertToSeconds(long value) { return value/60/60;};
+		public long convertToMinutes(long value) { return value/60;};
+		public long convertToHours(long value) { return value;};
+		public long convertToDays(long value) { return value*24;};
+		public long convertToWeeks(long value) { return value*24*7;};
+		public long convert(long d, TSUnit u) { return u.convertToHours(d); }
+	},
 	/** The days TSUnit */
-	DAYS(86400L, "D"),
+	DAYS(86400L, "D"){
+		public long convertToSeconds(long value) { return value/60/60/24;};
+		public long convertToMinutes(long value) { return value/60/24;};
+		public long convertToHours(long value) { return value/24;};
+		public long convertToDays(long value) { return value;};
+		public long convertToWeeks(long value) { return value*7;};
+		public long convert(long d, TSUnit u) { return u.convertToDays(d); }
+	},
 	/** The weeks TSUnit */
-	WEEKS(86400L*7, "W");
+	WEEKS(86400L*7, "W"){
+		public long convertToSeconds(long value) { return value/60/60/24/7;};
+		public long convertToMinutes(long value) { return value/60/24/7;};
+		public long convertToHours(long value) { return value/24/7;};
+		public long convertToDays(long value) { return value/7;};
+		public long convertToWeeks(long value) { return value;};
+		public long convert(long d, TSUnit u) { return u.convertToDays(d); }		
+	};
 	
 	private static final Map<String, TSUnit> CODE2TSUNIT = new HashMap<String, TSUnit>(TSUnit.values().length*2);
+	private static final Map<Integer, TSUnit> ORD2TSUNIT = new HashMap<Integer, TSUnit>(TSUnit.values().length);
 	
 	static {
 		for(TSUnit ts: TSUnit.values()) {
 			CODE2TSUNIT.put(ts.shortCode, ts);
 			CODE2TSUNIT.put(ts.shortCode.toLowerCase(), ts);
+			ORD2TSUNIT.put(ts.ordinal(), ts);
 		}
 	}
 	
@@ -80,6 +118,66 @@ public enum TSUnit  {
 	}
 	
 	/**
+	 * Determines if there is a higher unit than this one
+	 * @return true if there is a higher unit than this one, false otherwise
+	 */
+	public boolean hasHigher() {
+		return ORD2TSUNIT.containsKey(this.ordinal()+1);
+	}
+	
+	/**
+	 * Determines if there is a lower unit than this one
+	 * @return true if there is a lower unit than this one, false otherwise
+	 */
+	public boolean hasLower() {
+		return ORD2TSUNIT.containsKey(this.ordinal()-1);
+	}
+	
+	/**
+	 * Returns the next highest unit
+	 * @return the next highest unit or null if there is no higher unit
+	 */
+	public TSUnit getHigher() {
+		return ORD2TSUNIT.get(this.ordinal()+1);
+	}
+	
+	/**
+	 * Returns the next lowest unit
+	 * @return the next lowest unit or null if there is no lower unit
+	 */
+	public TSUnit getLower() {
+		return ORD2TSUNIT.get(this.ordinal()-1);
+	}
+	
+	/**
+	 * Returns the number of this unit's in the passed unit.
+	 * Throws an exception if this unit is larger than the passed unit.
+	 * @param unit The unit to determine the conversion for
+	 * @return The number of this unit's in the passed unit
+	 */
+	public long conversion(TSUnit unit) {
+		if(this.ordinal()>unit.ordinal()) throw new IllegalArgumentException("Invalid conversion [" + name() + "-->" + unit.name() + "]. This unit is larger than the passed unit", new Throwable());
+		return unit.secs / this.secs;
+	}
+	
+	
+	
+	public Duration refine(long size) {
+		TSUnit higher = getHigher();
+		if(higher==null) return new Duration(size, this);
+		if(mod(size, conversion(higher))==0) {
+			Duration d = new Duration(size/conversion(higher), higher);
+			return d.refine();
+		} else {
+			return new Duration(size, this);
+		}
+	}
+	
+	private double mod(double d, double mod) {
+		return d%mod;
+	}
+	
+	/**
 	 * Creates a new TSUnit
 	 * @param secs The number of seconds in one unit of this TSUnit
 	 * @param shortCode The short code for this unit
@@ -95,20 +193,28 @@ public enum TSUnit  {
 	public final String shortCode;
 	
 	public long convert(long sourceValue, TSUnit sourceUnit) {
-		if(sourceUnit==null) throw new IllegalArgumentException("The passed source unit was null", new Throwable());
-		if(sourceUnit==this) return sourceValue;
-		long result = sourceUnit.secs * sourceValue/this.secs;
-		return result;		
+		throw new AbstractMethodError();
 	}
 	
 	public static void main(String[] args) {
 		log("TSUnit Test");
-		log("6 Hours in Minutes:" + TSUnit.MINUTES.convert(6, TSUnit.HOURS));
-		log("60 Minutes in Hours:" + TSUnit.HOURS.convert(90, TSUnit.MINUTES));
+		log("6 Hours in Minutes:" + TSUnit.HOURS.convert(6, TSUnit.MINUTES));		
+		log("90 Hours in Minutes:" + TSUnit.HOURS.convert(90, TSUnit.MINUTES));
+		log("120 Minutes in Hours:" + TSUnit.MINUTES.convert(120, TSUnit.HOURS));
+		log("Minutes in Day:" + TSUnit.MINUTES.conversion(TSUnit.DAYS));
+		log("Refine 1440 Minutes:" + TSUnit.MINUTES.refine(1440));
+		log("Render 15 Minutes as Seconds:" + TSUnit.MINUTES.convert(15, TSUnit.SECONDS));
 	}
 	
 	public static void log(Object msg) {
 		System.out.println(msg);
 	}
+	
+	public long convertToSeconds(long value) {throw new AbstractMethodError();}
+	public long convertToMinutes(long value) {throw new AbstractMethodError();};
+	public long convertToHours(long value) {throw new AbstractMethodError();};
+	public long convertToDays(long value) {throw new AbstractMethodError();};
+	public long convertToWeeks(long value) {throw new AbstractMethodError();};
+	
 	
 }
