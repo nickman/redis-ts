@@ -22,14 +22,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 /**
  * <p>Title: InvalidTierTripletPairException</p>
  * <p>Description: Tier exception thrown when the tier parser detects an invalid triplet pair</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.InvalidTierTripletPairException</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.InvalidTierTripletPairException</code></p>
  */
 
 public class InvalidTierTripletPairException extends InvalidTierModelException {

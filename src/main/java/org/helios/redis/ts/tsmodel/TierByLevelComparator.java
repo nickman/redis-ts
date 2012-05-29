@@ -22,7 +22,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 import java.util.Comparator;
 
@@ -31,7 +31,7 @@ import java.util.Comparator;
  * <p>Description: A comparator to sort {@link Tier}s by level </p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TierByLevelComparator</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.TierByLevelComparator</code></p>
  */
 
 public class TierByLevelComparator implements Comparator<Tier> {

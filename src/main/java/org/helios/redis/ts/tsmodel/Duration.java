@@ -22,7 +22,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 
 /**
@@ -30,7 +30,7 @@ package org.helios.redis.ts.core;
  * <p>Description: The factored object of a {@link TSUnit} and a size.</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.Duration</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.Duration</code></p>
  */
 public class Duration implements Comparable<Duration> {
 	/** The length of the duration */

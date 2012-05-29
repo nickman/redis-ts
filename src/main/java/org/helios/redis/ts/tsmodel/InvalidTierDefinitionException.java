@@ -22,14 +22,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 /**
  * <p>Title: InvalidTierDefinitionException</p>
  * <p>Description: Generalized exception for error parsing a tier definition</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.InvalidTierDefinitionException</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.InvalidTierDefinitionException</code></p>
  */
 public class InvalidTierDefinitionException extends RuntimeException {
 

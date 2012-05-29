@@ -22,7 +22,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 import java.util.EnumSet;
 import java.util.Iterator;

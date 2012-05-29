@@ -22,7 +22,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +32,7 @@ import java.util.Map;
  * <p>Description: An extended analog of {@link java.util.concurrent.TimeUnit} that starts at SECONDS adds an extra member called WEEK and provides decodes for short names. </p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TSUnit</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.TSUnit</code></p>
  */
 
 public enum TSUnit  {

@@ -22,11 +22,12 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 import static org.junit.Assert.assertEquals;
 
 import org.helios.redis.ts.BaseTestCase;
+import org.helios.redis.ts.tsmodel.Tier;
 import org.junit.Test;
 
 /**
@@ -34,7 +35,7 @@ import org.junit.Test;
  * <p>Description: Test cases for the Tier parser</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TierTestCase</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.TierTestCase</code></p>
  */
 
 public class TierTestCase extends BaseTestCase {

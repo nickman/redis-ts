@@ -22,7 +22,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 /**
  * <p>Title: IllegalTierStateException</p>
@@ -30,7 +30,7 @@ package org.helios.redis.ts.core;
  * equal to the calc using the other 2</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.IllegalTierStateException</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.IllegalTierStateException</code></p>
  */
 public class IllegalTierStateException extends InvalidTierDefinitionException {
 

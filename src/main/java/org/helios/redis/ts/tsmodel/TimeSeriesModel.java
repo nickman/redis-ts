@@ -22,7 +22,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
@@ -35,7 +35,7 @@ import org.apache.log4j.Logger;
  * <p>Description: Container and parser for the timeseries core structure and tier model.</p>
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TimeSeriesModel</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.TimeSeriesModel</code></p>
  */
 
 public class TimeSeriesModel {

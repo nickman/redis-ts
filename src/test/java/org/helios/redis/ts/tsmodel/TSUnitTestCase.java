@@ -22,13 +22,14 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.core;
+package org.helios.redis.ts.tsmodel;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.TimeUnit;
 
 import org.helios.redis.ts.BaseTestCase;
+import org.helios.redis.ts.tsmodel.TSUnit;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -37,7 +38,7 @@ import org.junit.Test;
  * <p>Description: Test Cases for TSUnit</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.core.TSUnitTestCase</code></p>
+ * <p><code>org.helios.redis.ts.tsmodel.TSUnitTestCase</code></p>
  */
 
 public class TSUnitTestCase extends BaseTestCase {
