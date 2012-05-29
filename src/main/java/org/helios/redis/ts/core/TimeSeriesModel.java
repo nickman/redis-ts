@@ -24,8 +24,11 @@
  */
 package org.helios.redis.ts.core;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 /**
  * <p>Title: TimeSeriesModel</p>
@@ -36,14 +39,45 @@ import java.util.List;
  */
 
 public class TimeSeriesModel {
-	/**  The live ts tier name */ 
-	public static final String LIVE_TIER = "live";
 	
 	/** The timeseries tiers */
-	protected List<Tier> tiers = new ArrayList<Tier>();
+	protected LinkedHashSet<Tier> tiers = new LinkedHashSet<Tier>();
 	
-	private TimeSeriesModel() {
-		
+	/**
+	 * Creates a new TimeSeriesModel
+	 * @param model
+	 */
+	private TimeSeriesModel(String model) {
+		if(model==null) throw new IllegalArgumentException("The passed model was null", new Throwable());
+		model = model.trim().toLowerCase().replace(" ", "");
+		String[] frags = model.split("\\|");
+		Tier previousTier = null;
+		for(int i = 0; i < frags.length; i++) {
+			Tier tier = new Tier(frags[i], i);			
+			if(!  tiers.add(tier)) {				
+				throw new InvalidTierModelException("Duplicate Tier [" + frags[i] + "] in tier model [" + model + "]");
+			}			
+			if(previousTier!=null) {
+				if(tier.periodDuration.seconds%previousTier.periodDuration.seconds!=0) {
+					throw new InvalidTierModelException("The period duration of tier [" + tier.name + "] is not an even multiple of the prior tier [" + previousTier.name + "]");
+				}
+			}
+			previousTier = tier;
+		}			
+	}
+	
+	/**
+	 * Returns a two dimensional matrix of all the tiers in the model with values expressed in seconds.
+	 * @return a two dimensional matrix of all the tiers in the model with values expressed in seconds.
+	 */
+	public long[][] getModelMatrix() {
+		long[][] matrix = new long[tiers.size()][];
+		int i = 0;
+		for(Tier tier: tiers) {
+			matrix[i] = new long[]{ tier.periodDuration.seconds, tier.tierDuration.seconds, tier.periodCount };
+			i++;
+		}
+		return matrix;
 	}
 	
 	/**
@@ -52,26 +86,87 @@ public class TimeSeriesModel {
 	 * @return a new TimeSeriesModel 
 	 */
 	public static TimeSeriesModel create(String model) {
-		if(model==null) throw new IllegalArgumentException("The passed model was null", new Throwable());
-		String[] frags = model.split("\\|");
-		int cnt = 0;
-		for(String frag: frags) {
-			frag = frag.replace(" ", "");
-			Tier tier = new Tier(frag, cnt);
-			
-			cnt++;
-		}
-		return null;
+		return new TimeSeriesModel(model);
 	}
 	
 	
 	public static void main(String[] args) {
-		log("Test TimeSeriesModel");
-		String config = "p=15s,d=15m   |  p=2m,d=1h";
+//		log("Test TimeSeriesModel");		
+//		String config = "p=15s,t=7d |  p=60s,t=23d | p=15m,t=355d";
+//		TimeSeriesModel model1 = TimeSeriesModel.create(config);
+//		log(model1);
+//		TimeSeriesModel model2 = TimeSeriesModel.create(config);
+//		log("Model1 equals Model2:" + model1.equals(model2));
+//		log("Model2 equals Model1:" + model2.equals(model1));
+//		config = "p=15s,t=7d |  p=60s,t=28d | p=15m,t=355d";
+//		model2 = TimeSeriesModel.create(config);
+//		log("Model1 equals Model2:" + model1.equals(model2));
+//		for(long[] t : model2.getModelMatrix()) {
+//			log(Arrays.toString(t));
+//		}
+		log("Test TimeSeriesModel");		
+		//Logger.getLogger(Tier.class).setLevel(Level.DEBUG);
+		String config = "p=5s,t=1m | p=1m,t=2m | p=5m,t=15m";
+		TimeSeriesModel model1 = TimeSeriesModel.create(config);
+		log(model1);
+		
+		
 	}
 	
 	public static void log(Object msg) {
 		System.out.println(msg);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		StringBuilder b = new StringBuilder("Tier Model [");
+		for(Tier tier: tiers) {
+			b.append("\n\tLevel ").append(tier.level).append(":").append(tier);
+		}
+		b.append("\n]");
+		return b.toString();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see java.lang.Object#hashCode()
+	 */
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((tiers == null) ? 0 : tiers.hashCode());
+		return result;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see java.lang.Object#equals(java.lang.Object)
+	 */
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		TimeSeriesModel other = (TimeSeriesModel) obj;
+		if (tiers == null) {
+			if (other.tiers != null) {
+				return false;
+			}
+		} else if (!tiers.equals(other.tiers)) {
+			return false;
+		}
+		return true;
 	}
 }
 	

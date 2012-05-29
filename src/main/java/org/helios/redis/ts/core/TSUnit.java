@@ -26,7 +26,6 @@ package org.helios.redis.ts.core;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * <p>Title: TSUnit</p>
@@ -39,47 +38,77 @@ import java.util.concurrent.TimeUnit;
 public enum TSUnit  {
 	/** The seconds TSUnit */
 	SECONDS(1L, "S") {
+		@Override
 		public long convertToSeconds(long value) { return value;};
-		public long convertToMinutes(long value) { return value*60;};
-		public long convertToHours(long value) { return value*60*60;};
-		public long convertToDays(long value) { return value*60*60*24;};
-		public long convertToWeeks(long value) { return value*60*60*24*7;};
+		@Override
+		public long convertToMinutes(long value) { return value/60;};
+		@Override
+		public long convertToHours(long value) { return value/60/60;};
+		@Override
+		public long convertToDays(long value) { return value/60/60/24;};
+		@Override
+		public long convertToWeeks(long value) { return value/60/60/24/7;};
+		@Override
 		public long convert(long d, TSUnit u) { return u.convertToSeconds(d); }
 	},
 	/** The minutes TSUnit */
 	MINUTES(60L, "M"){
-		public long convertToSeconds(long value) { return value/60;};
+		@Override
+		public long convertToSeconds(long value) { return value*60;};
+		@Override
 		public long convertToMinutes(long value) { return value;};
-		public long convertToHours(long value) { return value*60;};
-		public long convertToDays(long value) { return value*60*24;};
-		public long convertToWeeks(long value) { return value*60*24*7;};
+		@Override
+		public long convertToHours(long value) { return value/60;};
+		@Override
+		public long convertToDays(long value) { return value/60/24;};
+		@Override
+		public long convertToWeeks(long value) { return value/60/24/7;};
+		@Override
 		public long convert(long d, TSUnit u) { return u.convertToMinutes(d); }
 	},
 	/** The hours TSUnit */
 	HOURS(3600L, "H") {
-		public long convertToSeconds(long value) { return value/60/60;};
-		public long convertToMinutes(long value) { return value/60;};
+		@Override
+		public long convertToSeconds(long value) { return value*60*60;};
+		@Override
+		public long convertToMinutes(long value) { return value*60;};
+		@Override
 		public long convertToHours(long value) { return value;};
-		public long convertToDays(long value) { return value*24;};
-		public long convertToWeeks(long value) { return value*24*7;};
+		@Override
+		public long convertToDays(long value) { return value/24;};
+		@Override
+		public long convertToWeeks(long value) { return value/24/7;};
+		@Override
 		public long convert(long d, TSUnit u) { return u.convertToHours(d); }
 	},
 	/** The days TSUnit */
 	DAYS(86400L, "D"){
-		public long convertToSeconds(long value) { return value/60/60/24;};
-		public long convertToMinutes(long value) { return value/60/24;};
-		public long convertToHours(long value) { return value/24;};
+		@Override
+		public long convertToSeconds(long value) { return value*60*60*24;};
+		@Override
+		public long convertToMinutes(long value) { return value*60*24;};
+		@Override
+		public long convertToHours(long value) { return value*24;};
+		@Override
 		public long convertToDays(long value) { return value;};
-		public long convertToWeeks(long value) { return value*7;};
+		@Override
+		public long convertToWeeks(long value) { return value/7;};
+		@Override
 		public long convert(long d, TSUnit u) { return u.convertToDays(d); }
 	},
 	/** The weeks TSUnit */
 	WEEKS(86400L*7, "W"){
-		public long convertToSeconds(long value) { return value/60/60/24/7;};
-		public long convertToMinutes(long value) { return value/60/24/7;};
-		public long convertToHours(long value) { return value/24/7;};
-		public long convertToDays(long value) { return value/7;};
+		@Override
+		public long convertToSeconds(long value) { return value*60*60*24*7;};
+		@Override
+		public long convertToMinutes(long value) { return value*60*24*7;};
+		@Override
+		public long convertToHours(long value) { return value*24*7;};
+		@Override
+		public long convertToDays(long value) { return value*7;};
+		@Override
 		public long convertToWeeks(long value) { return value;};
+		@Override
 		public long convert(long d, TSUnit u) { return u.convertToDays(d); }		
 	};
 	
@@ -162,15 +191,19 @@ public enum TSUnit  {
 	
 	
 	
+	/**
+	 * Attempts to create an equivalently sized duration in a higher unit
+	 * @param size The size of the duration to refine
+	 * @return the refined duration or the same duration if it could not be refined
+	 */
 	public Duration refine(long size) {
 		TSUnit higher = getHigher();
 		if(higher==null) return new Duration(size, this);
 		if(mod(size, conversion(higher))==0) {
 			Duration d = new Duration(size/conversion(higher), higher);
 			return d.refine();
-		} else {
-			return new Duration(size, this);
-		}
+		} 
+		return new Duration(size, this);
 	}
 	
 	private double mod(double d, double mod) {

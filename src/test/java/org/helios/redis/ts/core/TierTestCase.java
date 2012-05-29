@@ -25,7 +25,6 @@
 package org.helios.redis.ts.core;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import org.helios.redis.ts.BaseTestCase;
 import org.junit.Test;

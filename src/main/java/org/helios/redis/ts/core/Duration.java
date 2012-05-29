@@ -24,6 +24,7 @@
  */
 package org.helios.redis.ts.core;
 
+
 /**
  * <p>Title: Duration</p>
  * <p>Description: The factored object of a {@link TSUnit} and a size.</p> 
@@ -48,8 +49,24 @@ public class Duration implements Comparable<Duration> {
 		if(unit==null) throw new IllegalArgumentException("The passed unit was null", new Throwable());
 		this.size = size;
 		this.unit = unit;
-		seconds = this.unit.convert(size, TSUnit.SECONDS);
+		seconds = TSUnit.SECONDS.convert(size, unit);
 	}
+	
+	public static void main(String[] args) {
+		log("Duration");
+		Duration d = new Duration(1987180, TSUnit.SECONDS);
+		Duration d23 = new Duration(23, TSUnit.DAYS);
+		log("D23 Secs: [" + d23.seconds + "]");
+		log("Base: [" + d + "]");
+		log("Refined: [" + d.refine() + "]");
+
+		
+	}
+	
+	public static void log(Object msg) {
+		System.out.println(msg);
+	}
+	
 
 	/**
 	 * Returns the length of the duration
@@ -97,7 +114,7 @@ public class Duration implements Comparable<Duration> {
 	 * @return a new Duration
 	 */
 	public Duration renderIn(TSUnit unit) {
-		return new Duration(this.unit.convert(size, unit), unit);
+		return new Duration(unit.convert(size, this.unit), unit);
 	}
 
 	/**
