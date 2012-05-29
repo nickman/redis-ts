@@ -22,41 +22,36 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org. 
  *
  */
-package org.helios.redis.ts.controller;
+package org.helios.redis.ts.controller.conn;
 
 /**
- * <p>Title: TSConfiguration</p>
- * <p>Description: Defines the redis-ts configuration and the keys where it will be written into in Redis</p> 
+ * <p>Title: ConnectionManagerListener</p>
+ * <p>Description: Defines a listener that receives events from the {@link RedisConnectionManager}</p> 
  * <p>Company: Helios Development Group LLC</p>
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
- * <p><code>org.helios.redis.ts.controller.TSConfiguration</code></p>
+ * <p><code>org.helios.redis.ts.controller.conn.ConnectionManagerListener</code></p>
  */
-
-public interface TSConfiguration {
-	/** The key delimeter used by redis-ts */
-	public static final String TS_DELIM = ".";
-	/** The root key redis-ts namespace. */
-	public static final String TS_ROOT = "redis-ts";
-	/** The root redis-ts configuration namespace */
-	public static final String TS_CONFIG_ROOT =  TS_ROOT + TS_DELIM + "config";
-	/** The redis-ts configured model */
-	public static final String TS_MODEL = TS_CONFIG_ROOT + TS_DELIM + "model";
-	/** The redis-ts tier names */
-	public static final String TS_TIER_NAMES = TS_CONFIG_ROOT + TS_DELIM + "tier-names";
+public interface ConnectionManagerListener {
+	/**
+	 * Fired when the connection manager connects 
+	 * or reconnects to an instance with different run_id from the prior connection. 
+	 */
+	public void onConnectNewInstance();
 	
+	/**
+	 * Fired when the connection manager connects to the 
+	 * same run_id as was connected to in the prior connection 
+	 */
+	public void onConnect();
 	
+	/**
+	 * Fired when connectivity is lost
+	 */
+	public void onDisconnect();
 	
-	/** The pubsub delimeter used by redis-ts */
-	public static final String PS_DELIM = ".";
-	/** The root pubsub redis-ts channel namespace. */
-	public static final String PS_ROOT = "redis-ts";
-	/** The pubsub redis-ts channel. */
-	public static final String PS_HEARTBEAT = PS_ROOT + PS_DELIM + "heartbeat";
-
-	
-	// model 
-	// tiers
-	// scripts
-	
-	
+	/**
+	 * Fired when a heatbeat is not received in a timely manner. 
+	 * Does not, by itself, indicate a disconnect.
+	 */
+	public void onHeartbeatFailed();
 }

@@ -34,11 +34,11 @@ package org.helios.redis.ts.tsmodel;
  */
 public class Duration implements Comparable<Duration> {
 	/** The length of the duration */
-	protected final long size;
+	public final long size;
 	/** The unit of the duration */
-	protected final TSUnit unit;
+	public final TSUnit unit;
 	/** The duration in seconds */
-	protected final long seconds;
+	public final long seconds;
 	
 	/**
 	 * Creates a new Duration

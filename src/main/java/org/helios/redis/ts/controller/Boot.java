@@ -62,6 +62,7 @@ public class Boot {
 		try {
 			fos = new FileInputStream(f);
 			p.load(fos);
+			new TSController(p);
 		} catch (IOException ioe) {
 			LOG.error("Failed to read properties from [" + f + "]", ioe);
 			System.exit(-3);

@@ -1,8 +1,7 @@
-local ts = math.floor(tonumber(ARGV[1])/1000);
--- local period = tonumber(redis.call('get', 'timeseries.config.period'));
--- local periodCount = tonumber(redis.call('get', 'timeseries.config.live.periods'));
-local period = 15;
-local periodCount = 40;
+local typeMap = ${tsTypes};
+local period = ${periodDuration};   
+local periodCount = ${periodCount};
+local ts = tonumber(ARGV[1]);
 local bucket = ts-(ts%period);
 local member = bucket%(period*periodCount);
 redis.call('sadd','timeseries.live.members', member)
