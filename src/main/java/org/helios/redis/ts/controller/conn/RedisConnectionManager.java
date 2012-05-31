@@ -47,7 +47,8 @@ import org.helios.redis.ts.controller.TSConfiguration;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPubSub;
+import redis.clients.jedis.netty.OptimizedPubSub;
+import redis.clients.jedis.netty.SubListener;
 
 /**
  * <p>Title: RedisConnectionManager</p>
@@ -72,6 +73,10 @@ public class RedisConnectionManager {
 	protected long reconnectPeriod = -1;
 	/** The heartbeat period in seconds */
 	protected long heartbeatPeriod = -1;
+	/** The heartbeat publish period in seconds */
+	protected long heartbeatPublishPeriod = -1;
+	
+	
 	
 	/** The redis host name or IP address */
 	protected final String host;
@@ -106,10 +111,8 @@ public class RedisConnectionManager {
 	};
 	/** Scheduler thread pool */
 	protected final ScheduledThreadPoolExecutor scheduler; 
-	/** Dedicated heartbeat processor connection */
-	protected Jedis heartbeatJedis = null;
-	/** Dedicated ts event connection */
-	protected Jedis tsEventJedis = null;
+	/** PubSub for publishing and subscribing to heartbeats */
+	protected OptimizedPubSub heartbeatPubSub = null;
 	/** Scheduler handle for reconnect loop */
 	protected ScheduledFuture<?> reconnectScheduleHandle = null;
 	/** Scheduler handle for sending heartbeat events */
@@ -126,31 +129,17 @@ public class RedisConnectionManager {
 	protected final Set<ConnectionManagerListener> listeners = new CopyOnWriteArraySet<ConnectionManagerListener>();	
 	/** A map of the pool config field types keyed by the field */
 	protected static final Map<String, Field> poolConfigFieldNames = new HashMap<String, Field>(Config.class.getDeclaredFields().length);
-	/** heartbeat JedisPubsub */
-	protected JedisPubSub heartbeatPubSub = new JedisPubSub(){
-		public void onMessage(String channel, String message) {
+	/** heartbeat Listener */
+	protected SubListener heartbeatListener = new SubListener(){
+		@Override
+		public void onChannelMessage(String channel, String message) {
 			if(log.isDebugEnabled()) log.debug("Processing Message From Channel [" + channel + "]\n\t" + message);
 			lastHeartbeatTime.set(Long.parseLong(message));
 		}
 
-		public void onPMessage(String pattern, String channel, String message) {
-			if(log.isDebugEnabled()) log.debug("Processing Wildcard [" + pattern + "] Message From Channel [" + channel + "]\n\t" + message);
-		}
-
-		public void onSubscribe(String channel, int subscribedChannels) {
-			if(log.isDebugEnabled()) log.debug("Subscribing to [" + channel + "] Subscriptions:" + subscribedChannels);
-		}
-
-		public void onUnsubscribe(String channel, int subscribedChannels) {
-			if(log.isDebugEnabled()) log.debug("Unsubscribing from [" + channel + "] Subscriptions:" + subscribedChannels);
-		}
-
-		public void onPUnsubscribe(String pattern, int subscribedChannels) {
-			if(log.isDebugEnabled()) log.debug("P-Unsubscribing from [" + pattern + "] Subscriptions:" + subscribedChannels);
-		}
-
-		public void onPSubscribe(String pattern, int subscribedChannels) {
-			if(log.isDebugEnabled()) log.debug("P-Subscribing to [" + pattern + "] Subscriptions:" + subscribedChannels);
+		@Override
+		public void onPatternMessage(String pattern, String channel, String message) {
+			
 		}
 		
 	}; 
@@ -174,6 +163,7 @@ public class RedisConnectionManager {
 	public RedisConnectionManager(Properties configProps) {
 		reconnectPeriod = Integer.parseInt(configProps.getProperty("redis.reconnect.period", "5"));
 		heartbeatPeriod = Integer.parseInt(configProps.getProperty("redis.heartbeat.period", "3"));
+		heartbeatPublishPeriod = Integer.parseInt(configProps.getProperty("redis.heartbeat.period.publish", "2"));
 		int poolSize = Integer.parseInt(configProps.getProperty("redis.scheduler.pool.size", "5"));
 		scheduler = new ScheduledThreadPoolExecutor(poolSize, threadFactory);
 		scheduler.prestartCoreThread();
@@ -221,7 +211,7 @@ public class RedisConnectionManager {
 					jedisPool.returnResource(jedis);
 				}
 			}
-		}, 0, TimeUnit.MILLISECONDS.convert(heartbeatPeriod, TimeUnit.SECONDS)/2, TimeUnit.MILLISECONDS);
+		}, 0, heartbeatPublishPeriod, TimeUnit.SECONDS);
 		
 			
 		new Thread() {
