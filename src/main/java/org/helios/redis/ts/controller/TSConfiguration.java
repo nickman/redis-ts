@@ -50,8 +50,6 @@ public interface TSConfiguration {
 	public static final String PS_DELIM = ".";
 	/** The root pubsub redis-ts channel namespace. */
 	public static final String PS_ROOT = "redis-ts";
-	/** The pubsub redis-ts channel. */
-	public static final String PS_HEARTBEAT = PS_ROOT + PS_DELIM + "heartbeat";
 
 	
 	// model 

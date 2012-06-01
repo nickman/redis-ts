@@ -43,12 +43,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.apache.log4j.Logger;
-import org.helios.redis.ts.controller.TSConfiguration;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.netty.ConnectionListener;
 import redis.clients.jedis.netty.OptimizedPubSub;
 import redis.clients.jedis.netty.SubListener;
+import redis.clients.jedis.netty.jmx.ThreadPoolMonitor;
 
 /**
  * <p>Title: RedisConnectionManager</p>
@@ -58,7 +59,7 @@ import redis.clients.jedis.netty.SubListener;
  * @author Whitehead (nwhitehead AT heliosdev DOT org)
  * <p><code>org.helios.redis.ts.controller.conn.RedisConnectionManager</code></p>
  */
-public class RedisConnectionManager {
+public class RedisConnectionManager implements ConnectionListener {
 	/** Indicates if we have a good connection to redis */
 	protected final AtomicBoolean connected = new AtomicBoolean(false);
 	/** The jedis pool config */
@@ -75,7 +76,8 @@ public class RedisConnectionManager {
 	protected long heartbeatPeriod = -1;
 	/** The heartbeat publish period in seconds */
 	protected long heartbeatPublishPeriod = -1;
-	
+	/** The heartbeat channel name */
+	protected String heartbeatChannel;
 	
 	
 	/** The redis host name or IP address */
@@ -134,6 +136,7 @@ public class RedisConnectionManager {
 		@Override
 		public void onChannelMessage(String channel, String message) {
 			if(log.isDebugEnabled()) log.debug("Processing Message From Channel [" + channel + "]\n\t" + message);
+			//log.info("Processing Message From Channel [" + channel + "]\n\t" + message);
 			lastHeartbeatTime.set(Long.parseLong(message));
 		}
 
@@ -166,13 +169,16 @@ public class RedisConnectionManager {
 		heartbeatPublishPeriod = Integer.parseInt(configProps.getProperty("redis.heartbeat.period.publish", "2"));
 		int poolSize = Integer.parseInt(configProps.getProperty("redis.scheduler.pool.size", "5"));
 		scheduler = new ScheduledThreadPoolExecutor(poolSize, threadFactory);
+		ThreadPoolMonitor.registerMonitor(scheduler, new StringBuilder(getClass().getPackage().getName()).append(":service=Scheduler,name=RedisConnectionManager"));
 		scheduler.prestartCoreThread();
 		initPoolConfig(configProps);
 		host = configProps.getProperty("redis.connect.host");
 		auth = configProps.getProperty("redis.connect.auth");
 		port = Integer.parseInt(configProps.getProperty("redis.connect.port", "6379"));
 		timeout = Integer.parseInt(configProps.getProperty("redis.connect.timeout", "2000"));
+		heartbeatChannel = configProps.getProperty("redis.ts.hearbeat.channel", "redis-ts.heartbeat");
 		log = Logger.getLogger(getClass().getName() + "-" + host + ":" + port);
+		heartbeatPubSub = OptimizedPubSub.getInstance(host, port, auth, timeout);
 		if(auth==null || auth.trim().isEmpty()) {
 			jedisPool = new JedisPool(poolConfig, host, port, timeout);
 		} else {
@@ -197,28 +203,14 @@ public class RedisConnectionManager {
 	}
 	
 	protected void onSuccessfulConnect() {
-		heartbeatJedis = jedisPool.getResource();	
-		log.info("HBJedis Connected:" + heartbeatJedis.isConnected());
 		heartbeatSendHandle = scheduler.scheduleAtFixedRate(new Runnable(){			
 			public void run() {
-				Jedis jedis = null;
-				try {
-					jedis = jedisPool.getResource();
-					jedis.publish(TSConfiguration.PS_HEARTBEAT, "" + System.currentTimeMillis());
-				} catch (Exception e) {
-					log.error("Failed to publish heartbeat", e);
-				} finally {
-					jedisPool.returnResource(jedis);
-				}
+				heartbeatPubSub.publish(heartbeatChannel, "" + System.currentTimeMillis());
 			}
 		}, 0, heartbeatPublishPeriod, TimeUnit.SECONDS);
-		
+		heartbeatPubSub.subscribe(heartbeatChannel);
+		heartbeatPubSub.registerListener(heartbeatListener);
 			
-		new Thread() {
-			public void run() {
-				heartbeatJedis.subscribe(heartbeatPubSub, TSConfiguration.PS_HEARTBEAT);
-			}
-		}.start();
 		
 		scheduler.scheduleAtFixedRate(new Runnable(){
 			protected final long MAX_HB_ELAPSED = TimeUnit.MILLISECONDS.convert(heartbeatPeriod, TimeUnit.SECONDS);
@@ -241,6 +233,26 @@ public class RedisConnectionManager {
 			}
 		}, heartbeatPeriod, heartbeatPeriod, TimeUnit.SECONDS);		
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 * @see redis.clients.jedis.netty.ConnectionListener#onConnect(redis.clients.jedis.netty.OptimizedPubSub)
+	 */
+	@Override
+	public void onConnect(OptimizedPubSub pubSub) {
+		
+	}
+
+	/**
+	 * {@inheritDoc}
+	 * @see redis.clients.jedis.netty.ConnectionListener#onDisconnect(redis.clients.jedis.netty.OptimizedPubSub, java.lang.Throwable)
+	 */
+	@Override
+	public void onDisconnect(OptimizedPubSub pubSub, Throwable cause) {
+		
+	}	
+	
+	
 	/**
 	 * Closes the connection manager and deallocates all associated resources
 	 */
@@ -408,6 +420,8 @@ public class RedisConnectionManager {
 			listener.onHeartbeatFailed();
 		}
 	}
+
+
 	
 	
 	
